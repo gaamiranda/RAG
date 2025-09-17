@@ -1,6 +1,9 @@
-def main():
-    print("Hello from myrag!")
+from database import DatabaseConnection
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 if __name__ == "__main__":
-    main()
+    db = DatabaseConnection()
+    db.close()

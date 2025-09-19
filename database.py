@@ -33,6 +33,69 @@ class DatabaseConnection:
 		except Exception as e:
 			print(f"Error testing connection: {e}")
 			return False
+		
+	def store_document_in_db(self, metadata, chunks, embeddings):
+		db = DatabaseConnection()
+		
+		#Check file hash
+
+		query = "SELECT file_hash FROM documents;"
+		db.cursor.execute(query)
+		
+		rows = db.cursor.fetchall()
+		
+		for row in rows:
+			print(row)
+			if row[0] == metadata["file_hash"]:
+				print(f"❌ Error storing document: File_hash already exists")
+				db.close()
+				return None
+		try:
+			# Inserir documento e retornar o id
+			insert_doc_query = """
+				INSERT INTO documents (filename, file_path, total_pages, file_size, file_hash)
+				VALUES (%s, %s, %s, %s, %s)
+				RETURNING id;
+			"""
+			
+			db.cursor.execute(insert_doc_query, (
+				metadata['filename'],
+				metadata['file_path'], 
+				metadata['total_pages'],
+				metadata['file_size'],
+				metadata['file_hash']
+			))
+			
+			document_id = db.cursor.fetchone()[0]
+			
+			insert_chunk_query = """
+				INSERT INTO chunks (document_id, chunk_text, embedding, chunk_index)
+				VALUES (%s, %s, %s, %s);
+			"""
+			
+			for i, (chunk, embedding) in enumerate(zip(chunks, embeddings)):
+				
+				embedding_list = embedding.tolist()
+				
+				db.cursor.execute(insert_chunk_query, (
+					document_id,
+					chunk,
+					embedding_list,
+					i
+				))
+			
+			db.connection.commit()
+			print(f"✅ Successfully stored document with ID: {document_id}")
+			return document_id
+			
+		except Exception as e:
+			print(f"❌ Error storing document: {e}")
+			db.connection.rollback()
+			return None
+			
+		finally:
+			db.close()
+
 	def close(self):
 		if self.cursor:
 			self.cursor.close()

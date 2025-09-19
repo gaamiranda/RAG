@@ -1,9 +1,5 @@
-from database import DatabaseConnection
-from dotenv import load_dotenv
-from pdfprocessing import pdf_data_extraction
 from sentence_transformers import SentenceTransformer
-
-load_dotenv()
+TEXT_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
 
 def chunk_text(text, chunk_size=600, overlap=75):
     chunks = []
@@ -33,10 +29,7 @@ def chunk_text(text, chunk_size=600, overlap=75):
     return chunks
 
 
-if __name__ == "__main__":
-    file = ""
-    #db = DatabaseConnection()
-    #db.close()
-    data = pdf_data_extraction(file)
-    chunk_text(data["content"])
-    
+def chunks_embedding(chunks):
+    model = SentenceTransformer(TEXT_MODEL_NAME)
+    embeddings = model.encode(chunks)
+    return embeddings

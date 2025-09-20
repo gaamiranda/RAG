@@ -1,6 +1,7 @@
 from sentence_transformers import SentenceTransformer
 from database import DatabaseConnection
 from dotenv import load_dotenv
+import ollama
 
 load_dotenv()
 TEXT_MODEL_NAME = "sentence-transformers/all-MiniLM-L6-v2"
@@ -29,7 +30,6 @@ def search_similar_chunks(query_embedding, top_k=5):
 		db.cursor.execute(query, (query_embedding, query_embedding, top_k))
 		results = db.cursor.fetchall()
 		
-		print(results)
 		return results
 		
 	except Exception as e:
@@ -38,7 +38,34 @@ def search_similar_chunks(query_embedding, top_k=5):
 	finally:
 		db.close()
 
+def generate_answer(similar_chunks, question):
+    conversation = [
+        {
+            "role": "system", 
+            "content": """You are a helpful assistant that answers questions based on provided context. 
+						Use the context chunks to answer the user's question. 
+						If the chunks don't contain relevant information, say so.
+						Always mention which parts of your answer come from the provided context.
+						Also, not every chunk needs to be used, sometimes chunks may not make sense"""
+        },
+        {
+            "role": "user", 
+            "content": f"""Question: {question}
+
+							Context chunks:
+							{similar_chunks}
+							
+							Please answer the question based on the context provided."""
+        }
+    ]
+    
+    print("🤖 Calling Ollama, this may take a while...")
+    reply = ollama.chat(model='llama2', messages=conversation)
+    return reply['message']['content']
 
 if __name__ == "__main__":
-	embedding = process_query(input("What do you want to search for?"))
-	search_similar_chunks(embedding)
+	question = input("What do you want to search for? ")
+	embedding = process_query(question)
+	similar_chunks = search_similar_chunks(embedding)
+	final_answer = generate_answer(similar_chunks, question)
+	print(final_answer)

@@ -7,4 +7,10 @@ requires-python = ">=3.13"
 dependencies = ["psycopg2-binary",
 				"dotenv",
 				"pdfplumber",
-				"sentence_transformers"]
+				"sentence_transformers",
+				"ollama"]
+
+[dependency-groups]
+dev = [
+    "flet[all]>=0.28.3",
+]

@@ -62,10 +62,3 @@ def generate_answer(similar_chunks, question):
     print("🤖 Calling Ollama, this may take a while...")
     reply = ollama.chat(model='llama2', messages=conversation)
     return reply['message']['content']
-
-if __name__ == "__main__":
-	question = input("What do you want to search for? ")
-	embedding = process_query(question)
-	similar_chunks = search_similar_chunks(embedding)
-	final_answer = generate_answer(similar_chunks, question)
-	print(final_answer)

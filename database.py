@@ -21,9 +21,14 @@ class DatabaseConnection:
 
 	def _get_cursor(self):
 		if not self.connection:
+			print("❌ No database connection available")
 			return None
-		cursor = self.connection.cursor()
-		return cursor if self._test_connection(cursor) else None
+		try:
+			cursor = self.connection.cursor()
+			return cursor if self._test_connection(cursor) else None
+		except Exception as e:
+			print(f"❌ Error creating cursor: {e}")
+			return None
 
 	def _test_connection(self, cursor):
 		try:
@@ -33,7 +38,12 @@ class DatabaseConnection:
 		except Exception as e:
 			print(f"Error testing connection: {e}")
 			return False
-		
+	
+	def execute_query(self, query, **params):
+		self.cursor.execute(query, params)
+		docs = self.cursor.fetchall()
+		return docs
+
 	def store_document_in_db(self, metadata, chunks, embeddings):
 		db = DatabaseConnection()
 		

@@ -209,6 +209,3 @@ The system uses the following default settings (configurable in the source files
 - First run downloads the embedding model (~90MB)
 - Subsequent runs will be faster
 
-## License
-
-[Add your license here]
